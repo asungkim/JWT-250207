@@ -43,7 +43,7 @@ public class AuthTokenServiceTest {
         String jwtStr = Ut.Jwt.createToken(secretKey, expireSeconds, original);
 
         assertThat(jwtStr).isNotBlank();
-        Map<String, Object> parsePayload = Ut.Jwt.getPayLoad(secretKey,jwtStr);
+        Map<String, Object> parsePayload = Ut.Jwt.getPayLoad(secretKey, jwtStr);
 
         assertThat(parsePayload).containsAllEntriesOf(original);
 
@@ -69,5 +69,11 @@ public class AuthTokenServiceTest {
 
         boolean isValid = Ut.Jwt.isValidToken(secretKey, accessToken);
         assertThat(isValid).isTrue();
+
+        Map<String, Object> parsedPayLoad = Ut.Jwt.getPayLoad(secretKey, accessToken);
+
+        assertThat(parsedPayLoad).containsAllEntriesOf(
+                Map.of("id", member.getId(), "username", member.getUsername())
+        );
     }
 }
