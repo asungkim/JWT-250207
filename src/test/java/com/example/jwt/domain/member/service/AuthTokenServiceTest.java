@@ -1,6 +1,8 @@
 package com.example.jwt.domain.member.service;
 
+import com.example.jwt.domain.member.member.entity.Member;
 import com.example.jwt.domain.member.member.service.AuthTokenService;
+import com.example.jwt.domain.member.member.service.MemberService;
 import com.example.jwt.standard.Ut;
 import io.jsonwebtoken.security.Keys;
 import org.junit.jupiter.api.DisplayName;
@@ -22,6 +24,8 @@ public class AuthTokenServiceTest {
 
     @Autowired
     private AuthTokenService authTokenService;
+    @Autowired
+    private MemberService memberService;
 
     @Test
     @DisplayName("AuthTokenService 생성")
@@ -31,7 +35,7 @@ public class AuthTokenServiceTest {
 
     @Test
     @DisplayName("jwt 생성")
-    void createToke() {
+    void createToken() {
         int expireSeconds = 60 * 60 * 24 * 365;
         Key secretKey = Keys.hmacShaKeyFor("abcdefghijklmnopqrstuvwxyz1234567890abcdefghijklmnopqrstuvwxyz1234567890".getBytes());
 
@@ -39,5 +43,16 @@ public class AuthTokenServiceTest {
 
         assertThat(jwt).isNotBlank();
         System.out.println("jwt = " + jwt);
+    }
+
+    @Test
+    @DisplayName("access token 생성")
+    void accessToken() {
+        // jwt -> access token
+        Member member = memberService.findByUsername("user1").get();
+
+        String accessToken = authTokenService.genAccessToken(member);
+        assertThat(accessToken).isNotBlank();
+        System.out.println("AccessToken = " + accessToken);
     }
 }
