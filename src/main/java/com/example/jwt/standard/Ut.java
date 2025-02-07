@@ -3,7 +3,6 @@ package com.example.jwt.standard;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 
 import java.security.Key;
 import java.util.Date;
@@ -31,10 +30,10 @@ public class Ut {
 
             // 증서 만들기
             return Jwts.builder()
-                    .setClaims(claims)
-                    .setIssuedAt(issuedAt)
-                    .setExpiration(expiration)
-                    .signWith(secretKey, SignatureAlgorithm.HS256)
+                    .claims(claims)
+                    .issuedAt(issuedAt)
+                    .expiration(expiration)
+                    .signWith(secretKey)
                     .compact();
         }
     }
