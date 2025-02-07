@@ -1,10 +1,27 @@
 package com.example.jwt.domain.member.member.service;
 
+import com.example.jwt.domain.member.member.entity.Member;
+import com.example.jwt.standard.Ut;
+import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.security.Key;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
 public class AuthTokenService {
 
+    public String genAccessToken(Member member) {
+        int expireSeconds = 60 * 60 * 24 * 365;
+        Key secretKey = Keys.hmacShaKeyFor("abcdefghijklmnopqrstuvwxyz1234567890abcdefghijklmnopqrstuvwxyz1234567890".getBytes());
+
+        return Ut.Jwt.createToken(
+                secretKey,
+                expireSeconds,
+                Map.of("id", member.getId(), "username", member.getUsername())
+        );
+
+    }
 }
