@@ -4,6 +4,8 @@ import com.example.jwt.domain.member.member.entity.Member;
 import com.example.jwt.domain.member.member.service.AuthTokenService;
 import com.example.jwt.domain.member.member.service.MemberService;
 import com.example.jwt.standard.Ut;
+import io.jsonwebtoken.Jwt;
+import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -12,7 +14,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.security.Key;
+import javax.crypto.SecretKey;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -37,12 +39,24 @@ public class AuthTokenServiceTest {
     @DisplayName("jwt 생성")
     void createToken() {
         int expireSeconds = 60 * 60 * 24 * 365;
-        Key secretKey = Keys.hmacShaKeyFor("abcdefghijklmnopqrstuvwxyz1234567890abcdefghijklmnopqrstuvwxyz1234567890".getBytes());
+        SecretKey secretKey = Keys.hmacShaKeyFor("abcdefghijklmnopqrstuvwxyz1234567890abcdefghijklmnopqrstuvwxyz1234567890".getBytes());
 
-        String jwt = Ut.Jwt.createToken(secretKey, expireSeconds, Map.of("name", "paul", "age", 23));
+        Map<String, Object> original = Map.of("name", "paul", "age", 23);
+        String jwtStr = Ut.Jwt.createToken(secretKey, expireSeconds, original);
 
-        assertThat(jwt).isNotBlank();
-        System.out.println("jwt = " + jwt);
+        assertThat(jwtStr).isNotBlank();
+
+        Jwt<?, ?> parsedJwt = Jwts
+                .parser()
+                .verifyWith(secretKey)
+                .build()
+                .parse(jwtStr);
+
+        Map<String, Object> parsePayload = (Map<String, Object>) parsedJwt.getPayload();
+
+        assertThat(parsePayload).containsAllEntriesOf(original);
+
+
     }
 
     @Test
