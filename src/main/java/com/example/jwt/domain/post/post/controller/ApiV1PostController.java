@@ -102,7 +102,7 @@ public class ApiV1PostController {
     record ModifyReqBody(@NotBlank String title, @NotBlank String content) {
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("{id}")
     @Transactional
     public RsData<PostWithContentDto> modify(@Valid @RequestBody ModifyReqBody body,
                                              @PathVariable long id) {
@@ -123,7 +123,7 @@ public class ApiV1PostController {
         );
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("{id}")
     @Transactional
     public RsData<Void> delete(@PathVariable long id) {
         Member actor = rq.getActor();
