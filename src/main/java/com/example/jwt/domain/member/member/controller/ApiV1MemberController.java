@@ -46,7 +46,7 @@ public class ApiV1MemberController {
                         String password) {
     }
 
-    record LoginResBody(MemberDto item, String apiKey) {
+    record LoginResBody(MemberDto item, String apiKey, String accessToken) {
     }
 
     @PostMapping("/login")
@@ -55,6 +55,8 @@ public class ApiV1MemberController {
                 () -> new ServiceException("401-1", "존재하지 않는 아이디입니다.")
         );
 
+        String authToken = memberService.getAuthToken(member);
+
         if (!member.getPassword().equals(body.password())) {
             throw new ServiceException("401-1", "비밀번호가 일치하지 않습니다.");
         }
@@ -62,7 +64,10 @@ public class ApiV1MemberController {
         return new RsData<>(
                 "200-1",
                 "%s님 환영합니다.".formatted(member.getNickname()),
-                new LoginResBody(new MemberDto(member), member.getApiKey())
+                new LoginResBody(
+                        new MemberDto(member),
+                        member.getApiKey(),
+                        authToken)
         );
     }
 

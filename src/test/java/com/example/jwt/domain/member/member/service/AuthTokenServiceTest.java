@@ -1,8 +1,6 @@
-package com.example.jwt.domain.member.service;
+package com.example.jwt.domain.member.member.service;
 
 import com.example.jwt.domain.member.member.entity.Member;
-import com.example.jwt.domain.member.member.service.AuthTokenService;
-import com.example.jwt.domain.member.member.service.MemberService;
 import com.example.jwt.standard.Ut;
 import io.jsonwebtoken.security.Keys;
 import org.junit.jupiter.api.DisplayName;

@@ -1,6 +1,5 @@
-package com.example.jwt.domain.member.controller;
+package com.example.jwt.domain.member.member.controller;
 
-import com.example.jwt.domain.member.member.controller.ApiV1MemberController;
 import com.example.jwt.domain.member.member.entity.Member;
 import com.example.jwt.domain.member.member.service.MemberService;
 import org.junit.jupiter.api.DisplayName;
@@ -133,7 +132,7 @@ class ApiV1MemberControllerTest {
 
         ResultActions resultActions = loginRequest(username, password);
 
-        com.example.jwt.domain.member.member.entity.Member member = memberService.findByUsername(username).get();
+        Member member = memberService.findByUsername(username).get();
 
 
         resultActions
@@ -147,7 +146,8 @@ class ApiV1MemberControllerTest {
                 .andExpect(jsonPath("$.data.item.nickname").value(member.getNickname()))
                 .andExpect(jsonPath("$.data.item.createdDate").value(matchesPattern(member.getCreatedDate().toString().replaceAll("0+$", "") + ".*")))
                 .andExpect(jsonPath("$.data.item.modifiedDate").value(matchesPattern(member.getModifiedDate().toString().replaceAll("0+$", "") + ".*")))
-                .andExpect(jsonPath("$.data.apiKey").value(member.getApiKey()));
+                .andExpect(jsonPath("$.data.apiKey").value(member.getApiKey()))
+                .andExpect(jsonPath("$.data.accessToken").exists());
 
     }
 
