@@ -35,13 +35,13 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
-        String accessToken = authorizationHeader.replaceAll("Bearer ", "");
+        String authToken = authorizationHeader.replaceAll("Bearer ", "");
 
         // apiKey 방식 x
-        // Optional<Member> opMember = memberService.findByApiKey(apiKey);
+//         Optional<Member> opMember = memberService.findByApiKey(authToken);
 
         // accessToken 방식
-        Optional<Member> opMember = memberService.getMemberByAccessToken(accessToken);
+        Optional<Member> opMember = memberService.getMemberByAccessToken(authToken);
 
 
         if (opMember.isEmpty()) {
@@ -50,7 +50,7 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
         }
 
         Member writer = opMember.get();
-        rq.setLogin(writer.getUsername());
+        rq.setLogin(writer);
 
 
         filterChain.doFilter(request, response);
