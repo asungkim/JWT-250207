@@ -17,7 +17,7 @@ public class AuthTokenService {
     @Value("${custom.jwt.expire-seconds}")
     private int expireSeconds;
 
-    public String genAccessToken(Member member) {
+    String genAccessToken(Member member) {
         int expireSeconds = 60 * 60 * 24 * 365;
 
         return Ut.Jwt.createToken(
@@ -28,7 +28,7 @@ public class AuthTokenService {
 
     }
 
-    public Map<String, Object> getPayload(String token) {
+    Map<String, Object> getPayload(String token) {
         Map<String, Object> payLoad = Ut.Jwt.getPayload(keyString, token);
         if (payLoad == null) return null;
 
