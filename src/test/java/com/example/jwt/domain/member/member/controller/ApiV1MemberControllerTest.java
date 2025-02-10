@@ -2,6 +2,7 @@ package com.example.jwt.domain.member.member.controller;
 
 import com.example.jwt.domain.member.member.entity.Member;
 import com.example.jwt.domain.member.member.service.MemberService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +29,15 @@ class ApiV1MemberControllerTest {
     private MockMvc mvc;
     @Autowired
     private MemberService memberService;
+
+    private Member loginedMember;
+    private String token;
+
+    @BeforeEach
+    void beforeLogin() {
+        loginedMember = memberService.findByUsername("user1").get();
+        token = memberService.getAuthToken(loginedMember);
+    }
 
     private void checkMember(ResultActions resultActions, Member member) throws Exception {
         resultActions
@@ -235,20 +245,15 @@ class ApiV1MemberControllerTest {
     @Test
     @DisplayName("내 정보 조회")
     void me() throws Exception {
-
-        String token = "eyJhbGciOiJIUzUxMiJ9.eyJ1c2VybmFtZSI6InVzZXIxIiwiaWQiOjMsImlhdCI6MTczOTE1NDgzMCwiZXhwIjoxNzcwNjkwODMwfQ.zNa1zcq3Tbhmt__gO0FzFBGSLS_m9330DTFAV0CSTAhcP5Me4dFhwEJj3837VSw_nlmoObdL5osJiKHKwpE2iA";
-
         ResultActions resultActions = meRequest(token);
-
-
+        
         resultActions
                 .andExpect(status().isOk())
                 .andExpect(handler().handlerType(ApiV1MemberController.class))
                 .andExpect(handler().methodName("me"))
                 .andExpect(jsonPath("$.code").value("200-1"))
                 .andExpect(jsonPath("$.msg").value("내 정보 조회가 완료되었습니다."));
-//        Member member = memberService.findByApiKey(apiKey).get();
-//        checkMember(resultActions, member);
+        checkMember(resultActions, loginedMember);
     }
 
     @Test
