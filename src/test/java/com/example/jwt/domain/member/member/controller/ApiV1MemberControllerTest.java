@@ -199,7 +199,7 @@ class ApiV1MemberControllerTest {
 
     @Test
     @DisplayName("로그인 실패 - username 누락")
-    void logi4() throws Exception {
+    void login4() throws Exception {
 
         String username = "";
         String password = "1234";
@@ -217,7 +217,7 @@ class ApiV1MemberControllerTest {
 
     @Test
     @DisplayName("로그인 실패 - password 누락")
-    void logi5() throws Exception {
+    void login5() throws Exception {
 
         String username = "aaa";
         String password = "";

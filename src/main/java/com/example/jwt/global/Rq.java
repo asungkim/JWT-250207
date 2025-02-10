@@ -26,7 +26,7 @@ public class Rq {
 
     public void setLogin(Member writer) {
 
-        UserDetails user = new SecurityUser(writer.getId(), writer.getUsername(), writer.getPassword(), List.of());
+        UserDetails user = new SecurityUser(writer.getId(), writer.getUsername(), "", List.of());
 
         // 인증 정보 저장소
         SecurityContextHolder.getContext().setAuthentication(
