@@ -8,12 +8,13 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.ManyToOne;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 @Entity
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
+@SuperBuilder
 public class Comment extends BaseTime {
 
     private String content;
