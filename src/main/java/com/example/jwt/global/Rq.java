@@ -13,8 +13,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.annotation.RequestScope;
 
-import java.util.List;
-
 // Request, Response, Session, Cookie, Header
 @Component
 @RequiredArgsConstructor
@@ -26,7 +24,7 @@ public class Rq {
 
     public void setLogin(Member writer) {
 
-        UserDetails user = new SecurityUser(writer.getId(), writer.getUsername(), "", List.of());
+        UserDetails user = new SecurityUser(writer.getId(), writer.getUsername(), "", writer.getAuthorities());
 
         // 인증 정보 저장소
         SecurityContextHolder.getContext().setAuthentication(
