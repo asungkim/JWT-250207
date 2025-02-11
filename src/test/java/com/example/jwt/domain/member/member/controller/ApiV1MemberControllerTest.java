@@ -279,6 +279,9 @@ class ApiV1MemberControllerTest {
     void me3() throws Exception {
         String apiKey = loginedMember.getApiKey();
         String expiredToken = apiKey + " eyJhbGciOiJIUzUxMiJ9.eyJ1c2VybmFtZSI6InVzZXIxIiwiaWQiOjMsImlhdCI6MTczOTI0MTcxNywiZXhwIjoxNzM5MjQxNzIyfQ.KjxXIW4mZrlN7-_Ehv0j2FJOAPRhCoTlvCd69ecckUgqy0XcIDAn2WBFBz5nuVWTbBAMxy_vzCaW1P1rEYnfDA";
+        String wrongToken = apiKey + " " + "11";
+
+
 
         ResultActions resultActions = meRequest(expiredToken);
 
