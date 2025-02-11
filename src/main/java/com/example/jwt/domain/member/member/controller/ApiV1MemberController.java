@@ -59,9 +59,19 @@ public class ApiV1MemberController {
 
         String accessToken = memberService.genAccessToken(member);
         Cookie accessTokenCookie = new Cookie("accessToken", accessToken);
+
+        accessTokenCookie.setDomain("localhost");
+        accessTokenCookie.setPath("/");
+        accessTokenCookie.setHttpOnly(true);
+        accessTokenCookie.setSecure(true);
+        accessTokenCookie.setAttribute("SameSite", "Strict");
+
         response.addCookie(accessTokenCookie);
 
         String authToken = memberService.getAuthToken(member);
+
+        System.out.println(authToken.split(" ")[1].equals(accessToken));
+
 
         if (!member.getPassword().equals(body.password())) {
             throw new ServiceException("401-1", "비밀번호가 일치하지 않습니다.");
