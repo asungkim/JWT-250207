@@ -28,13 +28,12 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
             return false;
         }
 
-        if (!authorizationHeader.startsWith("Bearer ")) {
-            return false;
-        }
-        return true;
+        return authorizationHeader.startsWith("Bearer ");
     }
 
-    private String[] getAuthTokenFromRequest() {
+    record AuthToken(String apiKey, String accessToken) {}
+
+    private AuthToken getAuthTokenFromRequest() {
         if (isAuthorizationHeader()) {
             String authorizationHeader = rq.getHeader("Authorization");
             String authToken = authorizationHeader.replaceAll("Bearer ", "");
@@ -45,7 +44,7 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
                 return null;
             }
 
-            return new String[]{tokenBits[0], tokenBits[1]};
+            return new AuthToken(tokenBits[0], tokenBits[1]);
         }
 
         String accessToken = rq.getValueFromCookie("accessToken");
@@ -55,42 +54,40 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
             return null;
         }
 
-        return new String[]{apiKey, accessToken};
+        return new AuthToken(apiKey, accessToken);
     }
 
-    private Member refreshAccessToken(String apiKey, String accessToken) {
+    private Member getMemberByAccessToken(String apiKey, String accessToken) {
         Optional<Member> opAccMember = memberService.getMemberByAccessToken(accessToken);
-        if (opAccMember.isEmpty()) {
-            Optional<Member> opApiMember = memberService.findByApiKey(apiKey);
 
-            if (opApiMember.isEmpty()) {
-                return null;
-            }
-
-            String newAccessToken = memberService.genAccessToken(opApiMember.get());
-            rq.setHeader("Authorization", "Bearer " + newAccessToken);
-            rq.addCookie("accessToken", newAccessToken);
-
-            return opApiMember.get();
+        if (opAccMember.isPresent()) {
+            return opAccMember.get();
         }
 
-        return opAccMember.get();
+        Optional<Member> opApiMember = memberService.findByApiKey(apiKey);
+
+        if (opApiMember.isEmpty()) {
+            return null;
+        }
+
+        String newAccessToken = memberService.genAccessToken(opApiMember.get());
+        rq.addCookie("accessToken",newAccessToken);
+        rq.addCookie("apiKey",apiKey);
+
+        return opApiMember.get();
     }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
-        String[] tokens = getAuthTokenFromRequest();
+        AuthToken tokens = getAuthTokenFromRequest();
         if (tokens == null) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        String apiKey = tokens[0];
-        String accessToken = tokens[1];
-
         // 재발급 코드
-        Member writer = refreshAccessToken(apiKey, accessToken);
+        Member writer = getMemberByAccessToken(tokens.apiKey, tokens.accessToken);
         if (writer == null) {
             filterChain.doFilter(request, response);
             return;
