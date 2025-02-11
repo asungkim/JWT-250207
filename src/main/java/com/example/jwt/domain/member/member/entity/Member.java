@@ -7,6 +7,12 @@ import jakarta.persistence.EntityListeners;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 @Entity
 @Getter
@@ -29,5 +35,22 @@ public class Member extends BaseTime {
 
     public boolean isAdmin() {
         return username.equals("admin");
+    }
+
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return getMemberAuthoritiesAsString()
+                .stream()
+                .map(SimpleGrantedAuthority::new)
+                .toList();
+    }
+
+    public List<String> getMemberAuthoritiesAsString() {
+        List<String> authorities = new ArrayList<>();
+
+        if (isAdmin()) {
+            authorities.add("ADMIN_ACT");
+        }
+
+        return authorities;
     }
 }
