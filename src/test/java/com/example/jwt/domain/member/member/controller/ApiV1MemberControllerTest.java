@@ -245,8 +245,8 @@ class ApiV1MemberControllerTest {
     @Test
     @DisplayName("내 정보 조회")
     void me() throws Exception {
-        String apiKey= loginedMember.getApiKey();
-        String token= memberService.getAuthToken(loginedMember);
+        String apiKey = loginedMember.getApiKey();
+        String token = memberService.getAuthToken(loginedMember);
 
 
         ResultActions resultActions = meRequest(token);
@@ -272,5 +272,22 @@ class ApiV1MemberControllerTest {
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.code").value("401-1"))
                 .andExpect(jsonPath("$.msg").value("잘못된 인증키입니다."));
+    }
+
+    @Test
+    @DisplayName("내 정보 조회 - 만료된 토큰")
+    void me3() throws Exception {
+        String apiKey = loginedMember.getApiKey();
+        String expiredToken = apiKey + " eyJhbGciOiJIUzUxMiJ9.eyJ1c2VybmFtZSI6InVzZXIxIiwiaWQiOjMsImlhdCI6MTczOTI0MTcxNywiZXhwIjoxNzM5MjQxNzIyfQ.KjxXIW4mZrlN7-_Ehv0j2FJOAPRhCoTlvCd69ecckUgqy0XcIDAn2WBFBz5nuVWTbBAMxy_vzCaW1P1rEYnfDA";
+
+        ResultActions resultActions = meRequest(expiredToken);
+
+        resultActions
+                .andExpect(status().isOk())
+                .andExpect(handler().handlerType(ApiV1MemberController.class))
+                .andExpect(handler().methodName("me"))
+                .andExpect(jsonPath("$.code").value("200-1"))
+                .andExpect(jsonPath("$.msg").value("내 정보 조회가 완료되었습니다."));
+        checkMember(resultActions, loginedMember);
     }
 }
