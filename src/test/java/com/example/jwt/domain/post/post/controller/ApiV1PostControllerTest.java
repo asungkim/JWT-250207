@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
+import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
@@ -542,8 +543,10 @@ class ApiV1PostControllerTest {
     }
 
     @Test
-    @DisplayName("통계 조회")
-    void statistics() throws Exception {
+    @DisplayName("통계 조회 - 관리자 접근")
+    @WithUserDetails("admin")
+    void statisticsAdmin() throws Exception {
+
         ResultActions resultActions = mvc.perform(
                         get("/api/v1/posts/statistics")
                 )
@@ -558,6 +561,24 @@ class ApiV1PostControllerTest {
                 .andExpect(jsonPath("$.data.postCount").value(10))
                 .andExpect(jsonPath("$.data.postPublishedCount").value(10))
                 .andExpect(jsonPath("$.data.postListedCount").value(10));
+
+    }
+
+    @Test
+    @DisplayName("통계 조회 - user1 접근")
+    @WithUserDetails("user1")
+    void statisticsUser() throws Exception {
+        ResultActions resultActions = mvc.perform(
+                        get("/api/v1/posts/statistics")
+                )
+                .andDo(print());
+
+        resultActions
+                .andExpect(status().isForbidden())
+                .andExpect(handler().handlerType(ApiV1PostController.class))
+                .andExpect(handler().methodName("getStatistics"))
+                .andExpect(jsonPath("$.code").value("403-1"))
+                .andExpect(jsonPath("$.msg").value("접근 권한이 없습니다."));
 
     }
 }
