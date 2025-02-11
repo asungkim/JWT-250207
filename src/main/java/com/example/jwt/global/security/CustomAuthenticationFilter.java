@@ -59,8 +59,10 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
             }
 
             String newAuthToken = memberService.getAuthToken(opApiMember.get());
-
             response.addHeader("Authorization", "Bearer " + newAuthToken);
+
+            Member writer = opApiMember.get();
+            rq.setLogin(writer);
 
             filterChain.doFilter(request, response);
             return;
