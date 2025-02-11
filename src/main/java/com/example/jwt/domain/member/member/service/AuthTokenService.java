@@ -18,7 +18,6 @@ public class AuthTokenService {
     private int expireSeconds;
 
     String genAccessToken(Member member) {
-        int expireSeconds = 60 * 60 * 24 * 365;
 
         return Ut.Jwt.createToken(
                 keyString,
