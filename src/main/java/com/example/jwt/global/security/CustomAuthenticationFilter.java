@@ -5,6 +5,7 @@ import com.example.jwt.domain.member.member.service.MemberService;
 import com.example.jwt.global.Rq;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -21,55 +22,84 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
     private final Rq rq;
     private final MemberService memberService;
 
-    @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-
+    private boolean isAuthorizationHeader(HttpServletRequest request) {
         String authorizationHeader = request.getHeader("Authorization");
         if (authorizationHeader == null) {
-            filterChain.doFilter(request, response);
-            return;
+            return false;
         }
 
         if (!authorizationHeader.startsWith("Bearer ")) {
-            filterChain.doFilter(request, response);
-            return;
+            return false;
         }
+        return true;
+    }
 
-        String authToken = authorizationHeader.replaceAll("Bearer ", "");
+    @Override
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
-        String[] tokenBits = authToken.split(" ");
+        if (isAuthorizationHeader(request)) {
+            String authorizationHeader = request.getHeader("Authorization");
+            String authToken = authorizationHeader.replaceAll("Bearer ", "");
 
-        if (tokenBits.length < 2) {
-            filterChain.doFilter(request, response);
-            return;
-        }
+            String[] tokenBits = authToken.split(" ");
 
-        String apiKey = tokenBits[0];
-        String accessToken = tokenBits[1];
-
-        Optional<Member> opAccMember = memberService.getMemberByAccessToken(accessToken);
-
-        if (opAccMember.isEmpty()) {
-            // 재발급
-            Optional<Member> opApiMember = memberService.findByApiKey(apiKey);
-
-            if (opApiMember.isEmpty()) {
+            if (tokenBits.length < 2) {
                 filterChain.doFilter(request, response);
                 return;
             }
 
-            String newAuthToken = memberService.getAuthToken(opApiMember.get());
-            response.addHeader("Authorization", "Bearer " + newAuthToken);
+            String apiKey = tokenBits[0];
+            String accessToken = tokenBits[1];
 
-            Member writer = opApiMember.get();
+            Optional<Member> opAccMember = memberService.getMemberByAccessToken(accessToken);
+
+            if (opAccMember.isEmpty()) {
+                // 재발급
+                Optional<Member> opApiMember = memberService.findByApiKey(apiKey);
+
+                if (opApiMember.isEmpty()) {
+                    filterChain.doFilter(request, response);
+                    return;
+                }
+
+                String newAccessToken = memberService.genAccessToken(opApiMember.get());
+                response.addHeader("Authorization", "Bearer " + newAccessToken);
+
+                Member writer = opApiMember.get();
+                rq.setLogin(writer);
+
+                filterChain.doFilter(request, response);
+                return;
+            }
+
+            Member writer = opAccMember.get();
             rq.setLogin(writer);
 
-            filterChain.doFilter(request, response);
-            return;
-        }
 
-        Member writer = opAccMember.get();
-        rq.setLogin(writer);
+            filterChain.doFilter(request, response);
+        } else {
+            Cookie[] cookies = request.getCookies();
+            if (cookies == null) {
+                filterChain.doFilter(request, response);
+                return;
+            }
+
+            for (Cookie cookie : cookies) {
+                if (cookie.getName().equals("accessToken")) {
+                    String accessToken = cookie.getValue();
+
+                    Optional<Member> opMember = memberService.getMemberByAccessToken(accessToken);
+
+                    if (opMember.isEmpty()) {
+                        filterChain.doFilter(request, response);
+                        return;
+                    }
+
+                    Member writer = opMember.get();
+                    rq.setLogin(writer);
+                }
+            }
+        }
 
 
         filterChain.doFilter(request, response);
