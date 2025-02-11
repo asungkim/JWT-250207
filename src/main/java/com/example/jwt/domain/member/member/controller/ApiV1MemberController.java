@@ -6,6 +6,8 @@ import com.example.jwt.domain.member.member.service.MemberService;
 import com.example.jwt.global.Rq;
 import com.example.jwt.global.dto.RsData;
 import com.example.jwt.global.exception.ServiceException;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
@@ -50,10 +52,14 @@ public class ApiV1MemberController {
     }
 
     @PostMapping("/login")
-    public RsData<LoginResBody> login(@Valid @RequestBody LoginReqBody body) {
+    public RsData<LoginResBody> login(@Valid @RequestBody LoginReqBody body, HttpServletResponse response) {
         Member member = memberService.findByUsername(body.username()).orElseThrow(
                 () -> new ServiceException("401-1", "존재하지 않는 아이디입니다.")
         );
+
+        String accessToken = memberService.genAccessToken(member);
+        Cookie accessTokenCookie = new Cookie("accessToken", accessToken);
+        response.addCookie(accessTokenCookie);
 
         String authToken = memberService.getAuthToken(member);
 
