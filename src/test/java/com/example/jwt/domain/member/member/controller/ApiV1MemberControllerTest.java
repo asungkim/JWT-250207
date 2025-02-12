@@ -2,6 +2,7 @@ package com.example.jwt.domain.member.member.controller;
 
 import com.example.jwt.domain.member.member.entity.Member;
 import com.example.jwt.domain.member.member.service.MemberService;
+import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -15,8 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.matchesPattern;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -159,6 +159,28 @@ class ApiV1MemberControllerTest {
                 .andExpect(jsonPath("$.data.apiKey").value(member.getApiKey()))
                 .andExpect(jsonPath("$.data.accessToken").exists());
 
+        resultActions
+                .andExpect(mvcResult -> {
+                    Cookie apiKey = mvcResult.getResponse().getCookie("apiKey");
+
+                    assertThat(apiKey).isNotNull();
+                    assertThat(apiKey.getName()).isEqualTo("apiKey");
+                    assertThat(apiKey.getValue()).isNotBlank();
+                    assertThat(apiKey.getDomain()).isEqualTo("localhost");
+                    assertThat(apiKey.isHttpOnly()).isTrue();
+                    assertThat(apiKey.getSecure()).isTrue();
+
+                    Cookie accessToken = mvcResult.getResponse().getCookie("accessToken");
+
+                    assertThat(accessToken).isNotNull();
+                    assertThat(accessToken.getName()).isEqualTo("accessToken");
+                    assertThat(accessToken.getValue()).isNotBlank();
+                    assertThat(accessToken.getDomain()).isEqualTo("localhost");
+                    assertThat(accessToken.isHttpOnly()).isTrue();
+                    assertThat(accessToken.getSecure()).isTrue();
+
+                });
+
     }
 
     @Test
@@ -282,7 +304,6 @@ class ApiV1MemberControllerTest {
         String wrongToken = apiKey + " " + "11";
 
 
-
         ResultActions resultActions = meRequest(expiredToken);
 
         resultActions
@@ -292,5 +313,33 @@ class ApiV1MemberControllerTest {
                 .andExpect(jsonPath("$.code").value("200-1"))
                 .andExpect(jsonPath("$.msg").value("내 정보 조회가 완료되었습니다."));
         checkMember(resultActions, loginedMember);
+    }
+
+    @Test
+    @DisplayName("로그아웃")
+    void logout() throws Exception {
+        ResultActions resultActions = mvc.perform(
+                delete("/api/v1/members/logout")
+        )
+                .andDo(print());
+
+        resultActions
+                .andExpect(status().isOk())
+                .andExpect(handler().handlerType(ApiV1MemberController.class))
+                .andExpect(handler().methodName("logout"))
+                .andExpect(jsonPath("$.code").value("200-1"))
+                .andExpect(jsonPath("$.msg").value("로그아웃 되었습니다."));
+
+        resultActions
+                .andExpect(mvcResult->{
+                    Cookie accessToken = mvcResult.getResponse().getCookie("accessToken");
+                    assertThat(accessToken).isNotNull();
+                    assertThat(accessToken.getMaxAge()).isZero();
+
+                    Cookie apiKey = mvcResult.getResponse().getCookie("apiKey");
+                    assertThat(accessToken).isNotNull();
+                    assertThat(accessToken.getMaxAge()).isZero();
+                });
+
     }
 }
