@@ -117,12 +117,13 @@ public class ApiV1PostController {
     public RsData<PostWithContentDto> write(@Valid @RequestBody WriteReqBody body) {
 
         Member actor = rq.getActor();
+        Member realActor = rq.getRealActor(actor);
 
 //        Member actor=Member.builder()
 //                .id(1L)
 //                .build();
 
-        Post post = postService.write(actor, body.title(), body.content(), body.published(), body.listed());
+        Post post = postService.write(realActor, body.title(), body.content(), body.published(), body.listed());
 
         return new RsData<>(
                 "201-1",
