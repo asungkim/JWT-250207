@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Optional;
 
 @Component
@@ -31,7 +32,8 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
         return authorizationHeader.startsWith("Bearer ");
     }
 
-    record AuthToken(String apiKey, String accessToken) {}
+    record AuthToken(String apiKey, String accessToken) {
+    }
 
     private AuthToken getAuthTokenFromRequest() {
         if (isAuthorizationHeader()) {
@@ -71,14 +73,21 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
         }
 
         String newAccessToken = memberService.genAccessToken(opApiMember.get());
-        rq.addCookie("accessToken",newAccessToken);
-        rq.addCookie("apiKey",apiKey);
+        rq.addCookie("accessToken", newAccessToken);
+        rq.addCookie("apiKey", apiKey);
 
         return opApiMember.get();
     }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+
+        String url = request.getRequestURI();
+
+        if (List.of("/api/v1/members/login", "/api/v1/members/join").contains(url)) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         AuthToken tokens = getAuthTokenFromRequest();
         if (tokens == null) {
